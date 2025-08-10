@@ -1,0 +1,19 @@
+---
+- name: Install munge and slurm
+  become: true
+  package:
+    name:
+      - munge
+      - slurm
+    state: present
+
+- name: Deploy configuration
+  become: true
+  template:
+    src: "{{ item }}"
+    dest: "/etc/slurm/{{ item }}"
+  loop:
+    - slurm.conf
+    - cgroup.conf
+    - gres.conf
+    - slurmdbd.conf

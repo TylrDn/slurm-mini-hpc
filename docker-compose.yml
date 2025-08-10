@@ -1,0 +1,87 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10.5
+    environment:
+      MARIADB_ROOT_PASSWORD: slurm
+      MARIADB_DATABASE: slurm_acct_db
+      MARIADB_USER: slurm
+      MARIADB_PASSWORD: slurm
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  slurmdbd:
+    image: ghcr.io/giovtorres/slurmdbd:22.05
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./conf:/etc/slurm
+      - slurm-logs:/var/log/slurm
+      - slurm-state:/var/lib/slurm
+    healthcheck:
+      test: ['CMD', 'pgrep', 'slurmdbd']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  slurmctld:
+    image: ghcr.io/giovtorres/slurmctld:22.05
+    depends_on:
+      slurmdbd:
+        condition: service_healthy
+    ports:
+      - '6817:6817'
+      - '6818:6818'
+    volumes:
+      - ./conf:/etc/slurm
+      - slurm-logs:/var/log/slurm
+      - slurm-state:/var/lib/slurm
+    healthcheck:
+      test: ['CMD', 'pgrep', 'slurmctld']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker1:
+    image: ghcr.io/giovtorres/slurmd:22.05
+    hostname: worker1
+    depends_on:
+      slurmctld:
+        condition: service_healthy
+    volumes:
+      - ./conf:/etc/slurm
+      - slurm-logs:/var/log/slurm
+      - slurm-state:/var/lib/slurm
+    healthcheck:
+      test: ['CMD', 'pgrep', 'slurmd']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker2:
+    image: ghcr.io/giovtorres/slurmd:22.05
+    hostname: worker2
+    depends_on:
+      slurmctld:
+        condition: service_healthy
+    volumes:
+      - ./conf:/etc/slurm
+      - slurm-logs:/var/log/slurm
+      - slurm-state:/var/lib/slurm
+    healthcheck:
+      test: ['CMD', 'pgrep', 'slurmd']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  db-data:
+  slurm-logs:
+  slurm-state:

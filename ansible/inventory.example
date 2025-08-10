@@ -1,0 +1,4 @@
+[slurm]
+slurmctld ansible_host=controller.example
+slurmd1 ansible_host=worker1.example
+slurmd2 ansible_host=worker2.example

@@ -1,0 +1,6 @@
+---
+- name: Install container runtime
+  become: true
+  package:
+    name: docker.io
+    state: present

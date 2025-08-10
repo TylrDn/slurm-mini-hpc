@@ -1,0 +1,7 @@
+---
+- name: Install NVIDIA drivers
+  become: true
+  package:
+    name: nvidia-driver
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
